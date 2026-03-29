@@ -133,7 +133,7 @@ export default function HomePage() {
                 asChild
                 size="lg"
                 className="bg-white font-semibold hover:bg-white/90"
-                style={{ color: "oklch(0.2 0.09 255)" }}
+                style={{ color: "black" }}
               >
                 <Link to="/apply" data-ocid="hero.primary_button">
                   Apply for Licence <ChevronRight className="ml-1 h-4 w-4" />
@@ -142,8 +142,8 @@ export default function HomePage() {
               <Button
                 asChild
                 size="lg"
-                variant="outline"
-                className="border-white/40 text-white hover:bg-white/10"
+                className="bg-white font-semibold hover:bg-white/90"
+                style={{ color: "black" }}
               >
                 <Link to="/status" data-ocid="hero.secondary_button">
                   Check Status

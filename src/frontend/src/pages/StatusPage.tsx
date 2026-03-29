@@ -62,10 +62,10 @@ export default function StatusPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-heading font-bold mb-2">
+        <h1 className="text-3xl font-heading font-bold mb-2 text-black">
           Check Application Status
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-black">
           Enter your reference number to check the status of your licence
           application.
         </p>
@@ -74,7 +74,9 @@ export default function StatusPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-3">
-            <Label htmlFor="refNum">Reference Number</Label>
+            <Label htmlFor="refNum" className="text-black">
+              Reference Number
+            </Label>
             <div className="flex gap-2">
               <Input
                 id="refNum"
@@ -83,6 +85,7 @@ export default function StatusPage() {
                 onChange={(e) => setRefInput(e.target.value)}
                 placeholder="ELP-1001 or 1001"
                 onKeyDown={(e) => e.key === "Enter" && handleCheck()}
+                className="text-black"
               />
               <Button
                 onClick={handleCheck}
@@ -115,7 +118,7 @@ export default function StatusPage() {
       {result && statusCfg && (
         <Card className="mt-6" data-ocid="status.card">
           <CardHeader>
-            <CardTitle className="font-heading flex items-center justify-between">
+            <CardTitle className="font-heading flex items-center justify-between text-black">
               Application Details
               <span
                 className={`text-sm font-normal px-3 py-1 rounded-full border ${statusCfg.color}`}
@@ -127,27 +130,31 @@ export default function StatusPage() {
           <CardContent className="space-y-3 text-sm">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               <div>
-                <span className="text-muted-foreground">Reference</span>
-                <p className="font-semibold">ELP-{result.id.toString()}</p>
+                <span className="text-black">Reference</span>
+                <p className="font-semibold text-black">
+                  ELP-{result.id.toString()}
+                </p>
               </div>
               <div>
-                <span className="text-muted-foreground">Licence Type</span>
-                <p className="font-semibold capitalize">{result.licenseType}</p>
+                <span className="text-black">Licence Type</span>
+                <p className="font-semibold capitalize text-black">
+                  {result.licenseType}
+                </p>
               </div>
               <div>
-                <span className="text-muted-foreground">Applicant</span>
-                <p className="font-semibold">{result.fullName}</p>
+                <span className="text-black">Applicant</span>
+                <p className="font-semibold text-black">{result.fullName}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Submitted</span>
-                <p className="font-semibold">
+                <span className="text-black">Submitted</span>
+                <p className="font-semibold text-black">
                   {formatDate(result.submittedAt)}
                 </p>
               </div>
             </div>
             {result.remarks && (
-              <div className="mt-3 p-3 bg-muted rounded text-muted-foreground">
-                <strong className="text-foreground">Remarks:</strong>{" "}
+              <div className="mt-3 p-3 bg-muted rounded text-black">
+                <strong className="text-black">Remarks:</strong>{" "}
                 {result.remarks}
               </div>
             )}
