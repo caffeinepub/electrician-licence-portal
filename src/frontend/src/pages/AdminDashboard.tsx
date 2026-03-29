@@ -29,7 +29,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LicenseType, Status } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -53,50 +53,66 @@ function AdminLoginCard() {
   const { identity, login, loginStatus } = useInternetIdentity();
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const isAuthenticated = !!identity;
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [pendingPassword, setPendingPassword] = useState<string | null>(null);
 
   const isLoggingIn = loginStatus === "logging-in";
-  const isBusy = isLoggingIn || verifying;
+  const isBusy = isLoggingIn || verifying || pendingPassword !== null;
 
-  const verifyPassword = async (pwd: string) => {
-    if (!actor) return;
+  // When identity and actor are both updated after II login, verify the pending password
+  useEffect(() => {
+    if (!identity || pendingPassword === null || !actor) return;
+    if (identity.getPrincipal().isAnonymous()) return;
+
+    const pwd = pendingPassword;
+    setPendingPassword(null);
     setVerifying(true);
     setError("");
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ok: boolean = await (actor as any).setupAdminWithPassword(pwd);
-      if (ok) {
-        queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
-      } else {
-        setError("Incorrect admin password. Please try again.");
-      }
-    } catch (e: any) {
-      setError(e?.message ?? "An error occurred. Please try again.");
-    } finally {
-      setVerifying(false);
-    }
-  };
 
-  const handleSubmit = async () => {
+    actor
+      .setupAdminWithPassword(pwd)
+      .then((ok) => {
+        if (ok) {
+          queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
+        } else {
+          setError("Incorrect admin password. Please try again.");
+        }
+      })
+      .catch((e: any) => {
+        setError(e?.message ?? "An error occurred. Please try again.");
+      })
+      .finally(() => setVerifying(false));
+  }, [identity, actor, pendingPassword, queryClient]);
+
+  const handleSubmit = () => {
     if (!password.trim()) {
       setError("Please enter the admin password.");
       return;
     }
     setError("");
 
-    if (isAuthenticated) {
-      await verifyPassword(password);
+    if (identity && !identity.getPrincipal().isAnonymous()) {
+      // Already authenticated — verify password directly
+      if (!actor) return;
+      setVerifying(true);
+      actor
+        .setupAdminWithPassword(password)
+        .then((ok) => {
+          if (ok) {
+            queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
+          } else {
+            setError("Incorrect admin password. Please try again.");
+          }
+        })
+        .catch((e: any) => setError(e?.message ?? "An error occurred."))
+        .finally(() => setVerifying(false));
     } else {
-      try {
-        await login();
-        await verifyPassword(password);
-      } catch (e: any) {
-        setError(e?.message ?? "Login failed. Please try again.");
-      }
+      // Need II login first — store password and trigger login
+      setPendingPassword(password);
+      login();
     }
   };
 
@@ -183,7 +199,9 @@ function AdminLoginCard() {
                 {isBusy ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isLoggingIn ? "Authenticating..." : "Verifying..."}
+                    {isLoggingIn || pendingPassword !== null
+                      ? "Authenticating..."
+                      : "Verifying..."}
                   </>
                 ) : (
                   "Login to Admin Panel"
