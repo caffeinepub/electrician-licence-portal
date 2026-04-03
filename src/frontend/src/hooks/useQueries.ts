@@ -117,7 +117,7 @@ export const FALLBACK_FEES: Record<
   LicenseType,
   { amount: number; currency: string }
 > = {
-  [LicenseType.wireman]: { amount: 300, currency: "INR" },
-  [LicenseType.workman]: { amount: 300, currency: "INR" },
-  [LicenseType.supervisor]: { amount: 500, currency: "INR" },
+  [LicenseType.wireman]: { amount: 100, currency: "INR" },
+  [LicenseType.workman]: { amount: 100, currency: "INR" },
+  [LicenseType.supervisor]: { amount: 100, currency: "INR" },
 };

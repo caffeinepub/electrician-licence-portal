@@ -56,10 +56,16 @@ const DOCUMENT_FIELDS = [
     hint: "Recent passport-size photo",
   },
   {
-    key: "experienceLetter",
-    label: "Experience Letter",
+    key: "itiCertificate",
+    label: "ITI Certificate",
     required: false,
-    hint: "Letter from previous employer",
+    hint: "Industrial Training Institute certificate",
+  },
+  {
+    key: "birthCertificate",
+    label: "Birth Certificate",
+    required: false,
+    hint: "Government-issued birth certificate",
   },
 ];
 
@@ -492,8 +498,8 @@ export default function ApplyPage() {
                 Upload Documents
               </h2>
               <p className="text-sm text-black mb-4">
-                Passport photo is required. Experience letter is recommended for
-                faster processing.
+                Passport photo is required. ITI Certificate and Birth
+                Certificate are optional but recommended for faster processing.
               </p>
               <div className="grid gap-4">
                 {DOCUMENT_FIELDS.map((field) => (
@@ -771,9 +777,13 @@ function DocumentUploadField({
             <span className="font-medium text-sm text-black">
               {field.label}
             </span>
-            {field.required && (
+            {field.required ? (
               <Badge variant="destructive" className="text-xs px-1.5 py-0">
                 Required
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                Optional
               </Badge>
             )}
           </div>

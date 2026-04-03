@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Link } from "@tanstack/react-router";
 import {
   AlertCircle,
@@ -10,6 +12,8 @@ import {
   Shield,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { LicenseType } from "../backend";
 import { useGetFees } from "../hooks/useQueries";
 
@@ -25,7 +29,7 @@ const LICENSE_INFO = [
       "Basic electrical safety certificate",
     ],
     icon: "⚡",
-    fallbackFee: 300,
+    fallbackFee: 100,
     fallbackCurrency: "INR",
   },
   {
@@ -39,7 +43,7 @@ const LICENSE_INFO = [
       "Electrical trade certificate",
     ],
     icon: "🔧",
-    fallbackFee: 300,
+    fallbackFee: 100,
     fallbackCurrency: "INR",
   },
   {
@@ -53,7 +57,7 @@ const LICENSE_INFO = [
       "Supervisor competency certificate",
     ],
     icon: "🏆",
-    fallbackFee: 500,
+    fallbackFee: 100,
     fallbackCurrency: "INR",
   },
 ];
@@ -81,8 +85,21 @@ const STEPS = [
   },
 ];
 
+const CHALLAN_INSTRUCTIONS = [
+  { step: 1, text: "Scan the QR code using any UPI payment app." },
+  { step: 2, text: "Pay exactly ₹200 as the treasury challan fee." },
+  {
+    step: 3,
+    text: "Note the Reference Number provided after payment (e.g. ELP-1).",
+  },
+  { step: 4, text: "Enter the Reference Number below and click Submit." },
+];
+
+const ELP_REF_PATTERN = /^ELP-\d+$/i;
+
 export default function HomePage() {
   const { data: fees } = useGetFees();
+  const [challanRef, setChallanRef] = useState("");
 
   const getFee = (
     type: LicenseType,
@@ -93,6 +110,16 @@ export default function HomePage() {
     return fee
       ? `${fee.currency} ${Number(fee.amount).toLocaleString()}`
       : `${fallbackCurrency} ${fallback.toLocaleString()}`;
+  };
+
+  const handleChallanSubmit = () => {
+    const trimmed = challanRef.trim();
+    if (!trimmed || !ELP_REF_PATTERN.test(trimmed)) {
+      toast.error("Please enter a valid reference number");
+      return;
+    }
+    toast.success(`Challan submitted! Reference: ${trimmed}`);
+    setChallanRef("");
   };
 
   return (
@@ -165,6 +192,133 @@ export default function HomePage() {
           </span>
         </div>
       </div>
+
+      {/* Payment Treasury Challan */}
+      <section className="max-w-4xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card
+            className="border-2 shadow-sm"
+            style={{ borderColor: "oklch(0.75 0.08 252)" }}
+          >
+            <CardHeader
+              className="pb-4 border-b"
+              style={{ borderColor: "oklch(0.88 0.06 245)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
+                  style={{ backgroundColor: "oklch(0.32 0.12 252)" }}
+                >
+                  ₹
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-heading text-black">
+                    Payment Treasury Challan
+                  </CardTitle>
+                  <p className="text-sm text-black mt-0.5">
+                    Official Online Application System — Challan Fee
+                  </p>
+                </div>
+                <div className="ml-auto text-right">
+                  <div
+                    className="text-3xl font-bold font-heading"
+                    style={{ color: "oklch(0.32 0.12 252)" }}
+                  >
+                    ₹200
+                  </div>
+                  <div className="text-xs text-black font-medium uppercase tracking-wide">
+                    Payable Amount
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                {/* QR Code */}
+                <div className="flex flex-col items-center gap-3 shrink-0">
+                  <div
+                    className="p-2 border-2 rounded-xl bg-white shadow-sm"
+                    style={{ borderColor: "oklch(0.75 0.08 252)" }}
+                  >
+                    <img
+                      src="/assets/screenshot_2026-04-03-23-20-12-65_b86b87620f0dd897e4c0859ecbb2d537-019d5478-c7d0-77ee-bcdf-4e31e30d38ef.jpg"
+                      alt="Payment QR Code"
+                      className="rounded-lg object-contain"
+                      style={{ width: 180, height: 180 }}
+                    />
+                  </div>
+                  <p className="text-xs text-black font-medium text-center">
+                    Scan to Pay ₹200
+                  </p>
+                </div>
+
+                {/* Instructions + Form */}
+                <div className="flex-1 min-w-0">
+                  <h3
+                    className="font-heading font-semibold text-base mb-4"
+                    style={{ color: "oklch(0.32 0.12 252)" }}
+                  >
+                    How to Submit Your Challan
+                  </h3>
+                  <ol className="space-y-2 mb-6">
+                    {CHALLAN_INSTRUCTIONS.map(({ step, text }) => (
+                      <li
+                        key={step}
+                        className="flex items-start gap-3 text-sm text-black"
+                      >
+                        <span
+                          className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ backgroundColor: "oklch(0.32 0.12 252)" }}
+                        >
+                          {step}
+                        </span>
+                        {text}
+                      </li>
+                    ))}
+                  </ol>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="challan-ref"
+                        className="text-black font-medium"
+                      >
+                        Reference Number
+                      </Label>
+                      <Input
+                        id="challan-ref"
+                        data-ocid="challan.input"
+                        placeholder="e.g. ELP-1"
+                        value={challanRef}
+                        onChange={(e) => setChallanRef(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleChallanSubmit();
+                        }}
+                        className="text-black max-w-xs"
+                      />
+                    </div>
+                    <Button
+                      data-ocid="challan.submit_button"
+                      onClick={handleChallanSubmit}
+                      style={{
+                        backgroundColor: "oklch(0.32 0.12 252)",
+                        color: "white",
+                      }}
+                      className="font-semibold"
+                    >
+                      Submit Challan
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </section>
 
       {/* Licence Types & Fees */}
       <section className="max-w-6xl mx-auto px-4 py-16">

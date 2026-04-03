@@ -174,7 +174,7 @@ actor {
     [
       {
         licenseType = #wireman;
-        amount = 300;
+        amount = 100;
         currency = "INR";
       },
       {
@@ -184,7 +184,7 @@ actor {
       },
       {
         licenseType = #supervisor;
-        amount = 500;
+        amount = 100;
         currency = "INR";
       },
     ];
