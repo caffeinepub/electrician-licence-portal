@@ -56,6 +56,14 @@ export const LicenseApplication = IDL.Record({
   'remarks' : IDL.Opt(IDL.Text),
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const PublicApplicationStatus = IDL.Record({
+  'id' : IDL.Nat,
+  'fullName' : IDL.Text,
+  'licenseType' : LicenseType,
+  'status' : Status,
+  'submittedAt' : IDL.Int,
+  'remarks' : IDL.Opt(IDL.Text),
+});
 export const Fee = IDL.Record({
   'licenseType' : LicenseType,
   'currency' : IDL.Text,
@@ -104,6 +112,7 @@ export const idlService = IDL.Service({
   'getDocument' : IDL.Func([IDL.Nat, IDL.Text], [ExternalBlob], ['query']),
   'getFees' : IDL.Func([], [IDL.Vec(Fee)], ['query']),
   'getFullApplication' : IDL.Func([IDL.Nat], [LicenseApplication], ['query']),
+  'getPublicApplicationStatus' : IDL.Func([IDL.Nat], [PublicApplicationStatus], ['query']),
   'getStatistics' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(LicenseType, Statistics))],
@@ -176,6 +185,14 @@ export const idlFactory = ({ IDL }) => {
     'remarks' : IDL.Opt(IDL.Text),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const PublicApplicationStatus = IDL.Record({
+    'id' : IDL.Nat,
+    'fullName' : IDL.Text,
+    'licenseType' : LicenseType,
+    'status' : Status,
+    'submittedAt' : IDL.Int,
+    'remarks' : IDL.Opt(IDL.Text),
+  });
   const Fee = IDL.Record({
     'licenseType' : LicenseType,
     'currency' : IDL.Text,
@@ -228,6 +245,7 @@ export const idlFactory = ({ IDL }) => {
     'getDocument' : IDL.Func([IDL.Nat, IDL.Text], [ExternalBlob], ['query']),
     'getFees' : IDL.Func([], [IDL.Vec(Fee)], ['query']),
     'getFullApplication' : IDL.Func([IDL.Nat], [LicenseApplication], ['query']),
+    'getPublicApplicationStatus' : IDL.Func([IDL.Nat], [PublicApplicationStatus], ['query']),
     'getStatistics' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(LicenseType, Statistics))],

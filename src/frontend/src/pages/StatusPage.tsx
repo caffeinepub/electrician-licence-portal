@@ -39,8 +39,8 @@ export default function StatusPage() {
   const handleCheck = async () => {
     const clean = refInput.trim().toUpperCase().replace(/^ELP-/, "");
     const id = Number.parseInt(clean, 10);
-    if (Number.isNaN(id)) {
-      setError("Invalid reference number. Format: ELP-1001 or just 1001");
+    if (Number.isNaN(id) || id <= 0) {
+      setError("Invalid reference number. Use format: ELP-1 or just 1");
       return;
     }
     setError("");
@@ -48,7 +48,7 @@ export default function StatusPage() {
     setResult(null);
     try {
       if (!actor) throw new Error("Not connected to backend");
-      const app = await actor.getFullApplication(BigInt(id));
+      const app = await actor.getPublicApplicationStatus(BigInt(id));
       setResult(app);
     } catch {
       setError("Application not found. Please check your reference number.");
@@ -66,7 +66,7 @@ export default function StatusPage() {
           Check Application Status
         </h1>
         <p className="text-black">
-          Enter your reference number to check the status of your licence
+          Enter your ELP reference number to check the status of your licence
           application.
         </p>
       </div>
@@ -83,7 +83,7 @@ export default function StatusPage() {
                 data-ocid="status.search_input"
                 value={refInput}
                 onChange={(e) => setRefInput(e.target.value)}
-                placeholder="ELP-1001 or 1001"
+                placeholder="ELP-1 or 1"
                 onKeyDown={(e) => e.key === "Enter" && handleCheck()}
                 className="text-black"
               />

@@ -114,6 +114,14 @@ export interface LicenseApplication {
     declarationAccepted: boolean;
     remarks?: string;
 }
+export interface PublicApplicationStatus {
+    id: bigint;
+    fullName: string;
+    licenseType: LicenseType;
+    status: Status;
+    submittedAt: bigint;
+    remarks?: string;
+}
 export interface Fee {
     licenseType: LicenseType;
     currency: string;
@@ -160,6 +168,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     getAllApplications(): Promise<Array<LicenseApplication>>;
     getApplicationStatus(id: bigint): Promise<Status>;
+    getPublicApplicationStatus(id: bigint): Promise<PublicApplicationStatus>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDocument(id: bigint, documentType: string): Promise<ExternalBlob>;
@@ -173,7 +182,7 @@ export interface backendInterface {
     setupAdminWithPassword(password: string): Promise<boolean>;
     updateApplicationStatus(id: bigint, status: Status, remarks: string | null): Promise<void>;
 }
-import type { Document as _Document, ExternalBlob as _ExternalBlob, Fee as _Fee, LicenseApplication as _LicenseApplication, LicenseType as _LicenseType, Statistics as _Statistics, Status as _Status, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { Document as _Document, ExternalBlob as _ExternalBlob, Fee as _Fee, LicenseApplication as _LicenseApplication, LicenseType as _LicenseType, Statistics as _Statistics, Status as _Status, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult, PublicApplicationStatus as _PublicApplicationStatus } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -314,6 +323,34 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getApplicationStatus(arg0);
             return from_candid_Status_n13(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getPublicApplicationStatus(arg0: bigint): Promise<PublicApplicationStatus> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPublicApplicationStatus(arg0);
+                return {
+                    id: result.id,
+                    fullName: result.fullName,
+                    licenseType: from_candid_LicenseType_n19(this._uploadFile, this._downloadFile, result.licenseType),
+                    status: from_candid_Status_n13(this._uploadFile, this._downloadFile, result.status),
+                    submittedAt: result.submittedAt,
+                    remarks: record_opt_to_undefined(from_candid_opt_n21(this._uploadFile, this._downloadFile, result.remarks)),
+                };
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPublicApplicationStatus(arg0);
+            return {
+                id: result.id,
+                fullName: result.fullName,
+                licenseType: from_candid_LicenseType_n19(this._uploadFile, this._downloadFile, result.licenseType),
+                status: from_candid_Status_n13(this._uploadFile, this._downloadFile, result.status),
+                submittedAt: result.submittedAt,
+                remarks: record_opt_to_undefined(from_candid_opt_n21(this._uploadFile, this._downloadFile, result.remarks)),
+            };
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {

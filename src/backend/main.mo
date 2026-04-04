@@ -56,6 +56,14 @@ actor {
   public type UserProfile = {
     name : Text;
   };
+  public type PublicApplicationStatus = {
+    id : Nat;
+    fullName : Text;
+    licenseType : LicenseType;
+    status : Status;
+    submittedAt : Int;
+    remarks : ?Text;
+  };
 
   let applications = Map.empty<Nat, LicenseApplication>();
   var nextId = 1;
@@ -133,6 +141,19 @@ actor {
     findApplication(id).status;
   };
 
+  // Public query: returns limited info safe for anonymous status checks
+  public query func getPublicApplicationStatus(id : Nat) : async PublicApplicationStatus {
+    let app = findApplication(id);
+    {
+      id = app.id;
+      fullName = app.fullName;
+      licenseType = app.licenseType;
+      status = app.status;
+      submittedAt = app.submittedAt;
+      remarks = app.remarks;
+    };
+  };
+
   public query ({ caller }) func getFullApplication(id : Nat) : async LicenseApplication {
     let app = findApplication(id);
     if (caller != app.applicant and not (AccessControl.isAdmin(accessControlState, caller))) {
@@ -179,7 +200,7 @@ actor {
       },
       {
         licenseType = #workman;
-        amount = 300;
+        amount = 100;
         currency = "INR";
       },
       {

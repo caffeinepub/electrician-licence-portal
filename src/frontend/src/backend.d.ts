@@ -36,6 +36,14 @@ export interface LicenseApplication {
     declarationAccepted: boolean;
     remarks?: string;
 }
+export interface PublicApplicationStatus {
+    id: bigint;
+    fullName: string;
+    licenseType: LicenseType;
+    status: Status;
+    submittedAt: bigint;
+    remarks?: string;
+}
 export interface Fee {
     licenseType: LicenseType;
     currency: string;
@@ -67,6 +75,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     getAllApplications(): Promise<Array<LicenseApplication>>;
     getApplicationStatus(id: bigint): Promise<Status>;
+    getPublicApplicationStatus(id: bigint): Promise<PublicApplicationStatus>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDocument(id: bigint, documentType: string): Promise<ExternalBlob>;

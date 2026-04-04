@@ -3,16 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Link } from "@tanstack/react-router";
 import {
   AlertCircle,
   Award,
+  Check,
   ChevronRight,
   ClipboardCheck,
   Shield,
+  Upload,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { LicenseType } from "../backend";
 import { useGetFees } from "../hooks/useQueries";
@@ -90,16 +93,32 @@ const CHALLAN_INSTRUCTIONS = [
   { step: 2, text: "Pay exactly ₹200 as the treasury challan fee." },
   {
     step: 3,
-    text: "Note the Reference Number provided after payment (e.g. ELP-1).",
+    text: "Take a screenshot of the payment confirmation screen.",
   },
-  { step: 4, text: "Enter the Reference Number below and click Submit." },
+  {
+    step: 4,
+    text: "Enter the Reference Number from payment (e.g. ELP-1) below.",
+  },
+  { step: 5, text: "Upload the payment screenshot and click Submit." },
 ];
 
 const ELP_REF_PATTERN = /^ELP-\d+$/i;
 
+function generateChallanNumber(): string {
+  const ts = Date.now().toString().slice(-6);
+  const rand = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+  return `CHALLAN-${ts}${rand}`;
+}
+
 export default function HomePage() {
   const { data: fees } = useGetFees();
   const [challanRef, setChallanRef] = useState("");
+  const [challanScreenshot, setChallanScreenshot] = useState<File | null>(null);
+  const [challanSubmitted, setChallanSubmitted] = useState(false);
+  const [challanNumber, setChallanNumber] = useState("");
+  const screenshotRef = useRef<HTMLInputElement>(null);
 
   const getFee = (
     type: LicenseType,
@@ -115,11 +134,24 @@ export default function HomePage() {
   const handleChallanSubmit = () => {
     const trimmed = challanRef.trim();
     if (!trimmed || !ELP_REF_PATTERN.test(trimmed)) {
-      toast.error("Please enter a valid reference number");
+      toast.error("Please enter a valid reference number (e.g. ELP-1)");
       return;
     }
-    toast.success(`Challan submitted! Reference: ${trimmed}`);
+    if (!challanScreenshot) {
+      toast.error("Please upload your payment screenshot before submitting.");
+      return;
+    }
+    const cn = generateChallanNumber();
+    setChallanNumber(cn);
+    setChallanSubmitted(true);
+    toast.success(`Challan submitted! Challan Number: ${cn}`);
+  };
+
+  const handleReset = () => {
+    setChallanSubmitted(false);
+    setChallanNumber("");
     setChallanRef("");
+    setChallanScreenshot(null);
   };
 
   return (
@@ -237,84 +269,215 @@ export default function HomePage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                {/* QR Code */}
-                <div className="flex flex-col items-center gap-3 shrink-0">
+              {challanSubmitted ? (
+                // Success State
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-center py-4"
+                >
                   <div
-                    className="p-2 border-2 rounded-xl bg-white shadow-sm"
-                    style={{ borderColor: "oklch(0.75 0.08 252)" }}
+                    className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                    style={{
+                      backgroundColor: "oklch(0.88 0.06 245)",
+                      color: "oklch(0.32 0.12 252)",
+                    }}
                   >
-                    <img
-                      src="/assets/screenshot_2026-04-03-23-20-12-65_b86b87620f0dd897e4c0859ecbb2d537-019d5478-c7d0-77ee-bcdf-4e31e30d38ef.jpg"
-                      alt="Payment QR Code"
-                      className="rounded-lg object-contain"
-                      style={{ width: 180, height: 180 }}
-                    />
+                    <Check className="h-8 w-8" />
                   </div>
-                  <p className="text-xs text-black font-medium text-center">
-                    Scan to Pay ₹200
-                  </p>
-                </div>
-
-                {/* Instructions + Form */}
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className="font-heading font-semibold text-base mb-4"
-                    style={{ color: "oklch(0.32 0.12 252)" }}
-                  >
-                    How to Submit Your Challan
+                  <h3 className="text-xl font-heading font-bold text-black mb-2">
+                    Challan Submitted Successfully!
                   </h3>
-                  <ol className="space-y-2 mb-6">
-                    {CHALLAN_INSTRUCTIONS.map(({ step, text }) => (
-                      <li
-                        key={step}
-                        className="flex items-start gap-3 text-sm text-black"
-                      >
-                        <span
-                          className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5"
-                          style={{ backgroundColor: "oklch(0.32 0.12 252)" }}
-                        >
-                          {step}
-                        </span>
-                        {text}
-                      </li>
-                    ))}
-                  </ol>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label
-                        htmlFor="challan-ref"
-                        className="text-black font-medium"
-                      >
-                        Reference Number
-                      </Label>
-                      <Input
-                        id="challan-ref"
-                        data-ocid="challan.input"
-                        placeholder="e.g. ELP-1"
-                        value={challanRef}
-                        onChange={(e) => setChallanRef(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleChallanSubmit();
-                        }}
-                        className="text-black max-w-xs"
+                  <p className="text-sm text-black mb-5">
+                    Your payment has been recorded. Please save your Challan
+                    Number for future reference.
+                  </p>
+                  <div
+                    className="rounded-xl p-5 mb-5 border-2 inline-block min-w-[260px]"
+                    style={{
+                      borderColor: "oklch(0.32 0.12 252)",
+                      backgroundColor: "oklch(0.95 0.03 250)",
+                    }}
+                  >
+                    <p className="text-xs text-black mb-1 font-medium uppercase tracking-wide">
+                      Your Challan Number
+                    </p>
+                    <p
+                      className="text-2xl font-heading font-black tracking-wide"
+                      style={{ color: "oklch(0.32 0.12 252)" }}
+                    >
+                      {challanNumber}
+                    </p>
+                  </div>
+                  <p className="text-xs text-black mb-4">
+                    ⚠️ Please note this Challan Number for your records.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    className="text-black"
+                  >
+                    Submit Another Challan
+                  </Button>
+                </motion.div>
+              ) : (
+                // Form State
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  {/* QR Code */}
+                  <div className="flex flex-col items-center gap-3 shrink-0">
+                    <div
+                      className="p-2 border-2 rounded-xl bg-white shadow-sm"
+                      style={{ borderColor: "oklch(0.75 0.08 252)" }}
+                    >
+                      <img
+                        src="/assets/screenshot_2026-04-03-23-20-12-65_b86b87620f0dd897e4c0859ecbb2d537-019d5478-c7d0-77ee-bcdf-4e31e30d38ef.jpg"
+                        alt="Payment QR Code"
+                        className="rounded-lg object-contain"
+                        style={{ width: 180, height: 180 }}
                       />
                     </div>
-                    <Button
-                      data-ocid="challan.submit_button"
-                      onClick={handleChallanSubmit}
-                      style={{
-                        backgroundColor: "oklch(0.32 0.12 252)",
-                        color: "white",
-                      }}
-                      className="font-semibold"
+                    <p className="text-xs text-black font-medium text-center">
+                      Scan to Pay ₹200
+                    </p>
+                  </div>
+
+                  {/* Instructions + Form */}
+                  <div className="flex-1 min-w-0">
+                    <h3
+                      className="font-heading font-semibold text-base mb-4"
+                      style={{ color: "oklch(0.32 0.12 252)" }}
                     >
-                      Submit Challan
-                    </Button>
+                      How to Submit Your Challan
+                    </h3>
+                    <ol className="space-y-2 mb-6">
+                      {CHALLAN_INSTRUCTIONS.map(({ step, text }) => (
+                        <li
+                          key={step}
+                          className="flex items-start gap-3 text-sm text-black"
+                        >
+                          <span
+                            className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5"
+                            style={{ backgroundColor: "oklch(0.32 0.12 252)" }}
+                          >
+                            {step}
+                          </span>
+                          {text}
+                        </li>
+                      ))}
+                    </ol>
+
+                    <div className="space-y-4">
+                      {/* Reference Number */}
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="challan-ref"
+                          className="text-black font-medium"
+                        >
+                          Reference Number{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="challan-ref"
+                          data-ocid="challan.input"
+                          placeholder="e.g. ELP-1"
+                          value={challanRef}
+                          onChange={(e) => setChallanRef(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleChallanSubmit();
+                          }}
+                          className="text-black max-w-xs"
+                        />
+                      </div>
+
+                      {/* Payment Screenshot Upload */}
+                      <div className="space-y-1.5">
+                        <Label className="text-black font-medium">
+                          Payment Screenshot{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <div
+                          className="rounded-lg border-2 border-dashed p-4 transition-colors max-w-xs"
+                          style={
+                            challanScreenshot
+                              ? {
+                                  borderColor: "#22c55e",
+                                  backgroundColor: "#f0fdf4",
+                                }
+                              : { borderColor: "oklch(0.32 0.12 252 / 0.4)" }
+                          }
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              {challanScreenshot ? (
+                                <p className="text-xs text-green-600 font-medium">
+                                  ✓ {challanScreenshot.name}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-black">
+                                  Upload your payment confirmation screenshot
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                data-ocid="challan.upload_button"
+                                onClick={() => screenshotRef.current?.click()}
+                              >
+                                <Upload className="h-3.5 w-3.5 mr-1" />
+                                {challanScreenshot ? "Change" : "Upload"}
+                              </Button>
+                              {challanScreenshot && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setChallanScreenshot(null)}
+                                  className="text-red-500 hover:text-red-600"
+                                >
+                                  ✕
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {challanScreenshot && (
+                            <div className="mt-3">
+                              <img
+                                src={URL.createObjectURL(challanScreenshot)}
+                                alt="Payment screenshot preview"
+                                className="rounded-md object-contain border max-h-32 w-auto"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          ref={screenshotRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            setChallanScreenshot(e.target.files?.[0] ?? null)
+                          }
+                        />
+                      </div>
+
+                      <Button
+                        data-ocid="challan.submit_button"
+                        onClick={handleChallanSubmit}
+                        style={{
+                          backgroundColor: "oklch(0.32 0.12 252)",
+                          color: "white",
+                        }}
+                        className="font-semibold"
+                      >
+                        Submit Challan
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

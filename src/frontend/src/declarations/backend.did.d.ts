@@ -46,6 +46,14 @@ export type Status = { 'pending' : null } |
   { 'approved' : null } |
   { 'rejected' : null };
 export interface UserProfile { 'name' : string }
+export interface PublicApplicationStatus {
+  'id' : bigint,
+  'fullName' : string,
+  'licenseType' : LicenseType,
+  'status' : Status,
+  'submittedAt' : bigint,
+  'remarks' : [] | [string],
+}
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -85,6 +93,7 @@ export interface _SERVICE {
   'getDocument' : ActorMethod<[bigint, string], ExternalBlob>,
   'getFees' : ActorMethod<[], Array<Fee>>,
   'getFullApplication' : ActorMethod<[bigint], LicenseApplication>,
+  'getPublicApplicationStatus' : ActorMethod<[bigint], PublicApplicationStatus>,
   'getStatistics' : ActorMethod<[], Array<[LicenseType, Statistics]>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
