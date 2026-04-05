@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LicenseApplication } from "../backend";
 import { LicenseType, type Status } from "../backend";
+import { createActorWithConfig } from "../config";
 import { useActor } from "./useActor";
 
 export function useGetFees() {
@@ -68,8 +69,10 @@ export function useSubmitApplication() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: LicenseApplication) => {
-      if (!actor) throw new Error("Not connected");
-      return actor.submitApplication(input);
+      // Use existing actor if available, otherwise create an anonymous actor on the fly.
+      // submitApplication works for anonymous callers on the backend.
+      const resolvedActor = actor ?? (await createActorWithConfig());
+      return resolvedActor.submitApplication(input);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });

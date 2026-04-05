@@ -330,7 +330,7 @@ export default function HomePage() {
                       style={{ borderColor: "oklch(0.75 0.08 252)" }}
                     >
                       <img
-                        src="/assets/screenshot_2026-04-03-23-20-12-65_b86b87620f0dd897e4c0859ecbb2d537-019d5478-c7d0-77ee-bcdf-4e31e30d38ef.jpg"
+                        src="/assets/screenshot_2026-04-05-11-09-22-21_b86b87620f0dd897e4c0859ecbb2d537-019d5c28-5f4d-75ca-a31e-1e4c4a2ecba6.jpg"
                         alt="Payment QR Code"
                         className="rounded-lg object-contain"
                         style={{ width: 180, height: 180 }}
